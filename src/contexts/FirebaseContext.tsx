@@ -11,9 +11,12 @@ interface FirebaseContextType {
   logout: () => Promise<void>;
   updateUserProfile: (data: { displayName?: string; photoURL?: string }) => Promise<void>;
   isPro: boolean;
+  isGuest: boolean;
+  guestId: string;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
+const GUEST_ID = 'guest_architecture_user';
 
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,7 +44,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             setIsPro(userSnap.data().isPro || false);
           }
         } catch (err) {
-          handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+          console.warn('Sync delayed: ', err);
         }
         setUser(user);
       } else {
@@ -81,7 +84,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <FirebaseContext.Provider value={{ user, loading, login, logout, updateUserProfile, isPro }}>
+    <FirebaseContext.Provider value={{ user, loading, login, logout, updateUserProfile, isPro, isGuest: !user, guestId: GUEST_ID }}>
       {children}
     </FirebaseContext.Provider>
   );

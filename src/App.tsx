@@ -67,47 +67,6 @@ function ZenLayout() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="h-screen w-screen bg-mesh flex items-center justify-center p-6 bg-slate-900 transition-colors duration-700">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="mac-card max-w-lg w-full p-16 text-center space-y-10 bg-white/90 dark:bg-black/90"
-        >
-          <div className="space-y-4">
-            <motion.div 
-              initial={{ rotate: -10 }}
-              animate={{ rotate: 0 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-              className="w-24 h-24 bg-slate-900 dark:bg-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-            >
-              <Cpu size={48} className="text-white dark:text-black" />
-            </motion.div>
-            <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">NextOS</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed max-w-sm mx-auto">
-              The minimalist workspace for deep work and strategic thinking.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <button 
-              onClick={login}
-              className="w-full flex items-center justify-center gap-4 bg-slate-900 dark:bg-white text-white dark:text-black py-5 rounded-[2rem] font-black text-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-all shadow-2xl shadow-slate-900/20 active:scale-[0.98] group"
-            >
-              <LogIn size={24} className="group-hover:translate-x-1 transition-transform" />
-              Unlock Workspace
-            </button>
-            <p className="text-xs text-slate-400 font-black uppercase tracking-[0.2em]">
-              Powered by Cloud Sync & Gemini AI
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   const renderView = () => {
     switch (activeView) {
       case 'dashboard': return <Dashboard onEnterFocusMode={() => setIsFocusMode(true)} />;

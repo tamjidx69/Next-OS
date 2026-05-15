@@ -12,13 +12,13 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ onEnterFocusMode }: DashboardProps) {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [time, setTime] = useState(new Date());
   const [greeting, setGreeting] = useState('');
   const [stats, setStats] = useState({
-    pendingTasks: 0,
-    activeGoals: 0,
-    dailyHabitsCount: 0,
+    pendingTasks: 3,
+    activeGoals: 1,
+    dailyHabitsCount: 5,
     focusSessionsToday: 0,
   });
 
@@ -34,37 +34,39 @@ export default function Dashboard({ onEnterFocusMode }: DashboardProps) {
   }, [time]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
-    const qTasks = query(collection(db, 'tasks'), where('userId', '==', user.uid), where('completed', '==', false));
+    const qTasks = query(collection(db, 'tasks'), where('userId', '==', uid), where('completed', '==', false));
     const unsubTasks = onSnapshot(qTasks, (s) => setStats(prev => ({ ...prev, pendingTasks: s.size })), (e) => {
-      handleFirestoreError(e, OperationType.LIST, 'tasks');
+      // For guests, we don't handleFirestoreError as they might not have permissions
+      if (!isGuest) handleFirestoreError(e, OperationType.LIST, 'tasks');
     });
 
-    const qGoals = query(collection(db, 'goals'), where('userId', '==', user.uid));
+    const qGoals = query(collection(db, 'goals'), where('userId', '==', uid));
     const unsubGoals = onSnapshot(qGoals, (s) => setStats(prev => ({ ...prev, activeGoals: s.size })), (e) => {
-      handleFirestoreError(e, OperationType.LIST, 'goals');
+      if (!isGuest) handleFirestoreError(e, OperationType.LIST, 'goals');
     });
 
-    const qHabits = query(collection(db, 'habits'), where('userId', '==', user.uid));
+    const qHabits = query(collection(db, 'habits'), where('userId', '==', uid));
     const unsubHabits = onSnapshot(qHabits, (s) => setStats(prev => ({ ...prev, dailyHabitsCount: s.size })), (e) => {
-      handleFirestoreError(e, OperationType.LIST, 'habits');
+      if (!isGuest) handleFirestoreError(e, OperationType.LIST, 'habits');
     });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const qSessions = query(
       collection(db, 'focusSessions'), 
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       where('completedAt', '>=', today.getTime()),
       where('type', '==', 'focus')
     );
     const unsubSessions = onSnapshot(qSessions, (s) => setStats(prev => ({ ...prev, focusSessionsToday: s.size })), (e) => {
-      handleFirestoreError(e, OperationType.LIST, 'focusSessions');
+      if (!isGuest) handleFirestoreError(e, OperationType.LIST, 'focusSessions');
     });
 
     return () => { unsubTasks(); unsubGoals(); unsubHabits(); unsubSessions(); };
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 reveal">

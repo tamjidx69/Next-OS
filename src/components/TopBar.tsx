@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 export default function TopBar() {
   const [time, setTime] = useState(new Date());
-  const { user, logout } = useFirebase();
+  const { user, login, logout } = useFirebase();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -51,14 +51,28 @@ export default function TopBar() {
           <Wifi size={14} strokeWidth={3} />
           <Battery size={14} strokeWidth={3} />
           <Search size={14} strokeWidth={3} className="cursor-pointer hover:text-visible transition-colors" />
-          <button onClick={logout} className="flex items-center gap-2 hover:text-visible transition-colors">
-            {user?.photoURL ? (
-              <img src={user.photoURL} className="w-4 h-4 rounded-full border border-white/20" alt="avatar" />
-            ) : (
-              <User size={14} strokeWidth={3} />
-            )}
-            <span>{user?.displayName?.split(' ')[0]}</span>
-          </button>
+          
+          {user ? (
+            <button onClick={logout} className="flex items-center gap-2 hover:text-visible transition-colors group">
+              <div className="relative">
+                {user.photoURL ? (
+                  <img src={user.photoURL} className="w-4 h-4 rounded-full border border-white/20" alt="avatar" />
+                ) : (
+                  <User size={14} strokeWidth={3} />
+                )}
+                <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-black" />
+              </div>
+              <span>{user.displayName?.split(' ')[0] || 'Architect'}</span>
+            </button>
+          ) : (
+            <button 
+              onClick={login} 
+              className="flex items-center gap-2 text-indigo-600 hover:text-indigo-500 transition-colors group font-black"
+            >
+              <LogIn size={14} />
+              <span>Unlock Sync</span>
+            </button>
+          )}
         </div>
         <span className="cursor-default select-none text-slate-500 font-black">
           {formatTime(time)}
