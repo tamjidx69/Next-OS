@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Specific Validations ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.createdAt is number;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['userId', 'text', 'completed', 'priority', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.text is string && data.text.size() <= 1000 &&
+             data.completed is bool &&
+             data.priority in ['low', 'medium', 'high'] &&
+             data.createdAt is number;
+    }
+
+    function isValidNote(data) {
+      return data.keys().hasAll(['userId', 'title', 'createdAt', 'updatedAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.createdAt is number &&
+             data.updatedAt is number;
+    }
+
+    function isValidHabit(data) {
+      return data.keys().hasAll(['userId', 'title', 'streak', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.streak is number &&
+             data.createdAt is number;
+    }
+
+    function isValidGoal(data) {
+      return data.keys().hasAll(['userId', 'title', 'target', 'current', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.target is number &&
+             data.current is number &&
+             data.createdAt is number;
+    }
+
+    function isValidFocusSession(data) {
+      return data.keys().hasAll(['userId', 'duration', 'type', 'completedAt']) &&
+             data.userId == request.auth.uid &&
+             data.duration is number &&
+             data.type in ['focus', 'break'] &&
+             data.completedAt is number;
+    }
+
+    // --- Matches ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']) ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt'])
+      );
+    }
+
+    match /tasks/{taskId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidTask(incoming()) && isValidId(taskId);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidTask(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasAny(['text', 'completed', 'priority', 'updatedAt', 'dueDate']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /notes/{noteId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidNote(incoming()) && isValidId(noteId);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidNote(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasAny(['title', 'content', 'updatedAt']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /habits/{habitId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidHabit(incoming()) && isValidId(habitId);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidHabit(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasAny(['title', 'streak', 'lastCompleted']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /goals/{goalId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidGoal(incoming()) && isValidId(goalId);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidGoal(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasAny(['title', 'target', 'current']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+
+    match /focusSessions/{sessionId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidFocusSession(incoming()) && isValidId(sessionId);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidFocusSession(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+    }
+  }
+}

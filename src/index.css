@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+@layer base {
+  body {
+    @apply transition-colors duration-500 antialiased overflow-hidden selection:bg-indigo-500/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Root variables for light theme (default) */
+  :root {
+    --bg-primary: #F0F0F2;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(0, 0, 0, 0.05);
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --mesh-hsla-1: 253, 16%, 95%;
+    --mesh-hsla-2: 225, 39%, 90%;
+    --mesh-hsla-3: 339, 49%, 90%;
+    --dock-bg: rgba(255, 255, 255, 0.4);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Dark theme overrides */
+  .dark {
+    --bg-primary: #0A0A0B;
+    --card-bg: rgba(22, 22, 24, 0.7);
+    --card-border: rgba(255, 255, 255, 0.05);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --glass-bg: rgba(20, 20, 25, 0.6);
+    --mesh-hsla-1: 250, 10%, 10%;
+    --mesh-hsla-2: 230, 20%, 15%;
+    --mesh-hsla-3: 280, 20%, 12%;
+    --dock-bg: rgba(0, 0, 0, 0.4);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* macOS scrollbar style */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full transition-colors;
+    background-color: var(--scrollbar-thumb);
+  }
+}
+
+@layer components {
+  .glass {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--card-border);
+  }
+  
+  .dark .glass {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .mac-button {
+    @apply px-4 py-2 rounded-xl font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer flex items-center justify-center gap-2;
+  }
+
+  .mac-card {
+    @apply rounded-[2.5rem] overflow-hidden transition-all duration-500 backdrop-blur-[50px] shadow-2xl;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+  }
+
+  .text-visible {
+    color: var(--text-primary);
+    @apply font-bold;
+  }
+
+  .text-secondary-visible {
+    color: var(--text-secondary);
+    @apply font-semibold;
+  }
+
+  /* Smooth reveal animation */
+  .reveal {
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+  }
+}
+
+/* Background mesh gradient */
+.bg-mesh {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(var(--mesh-hsla-1), 1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(var(--mesh-hsla-2), 1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(var(--mesh-hsla-3), 1) 0, transparent 50%);
+  background-attachment: fixed;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
