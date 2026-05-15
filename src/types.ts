@@ -1,4 +1,4 @@
-export type ViewType = 'dashboard' | 'tasks' | 'notes' | 'ai' | 'habits' | 'goals' | 'settings' | 'pricing';
+export type ViewType = 'dashboard' | 'tasks' | 'notes' | 'ai' | 'habits' | 'goals' | 'settings';
 
 export interface Task {
   id: string;

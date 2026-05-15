@@ -12,7 +12,7 @@ service cloud.firestore {
     }
 
     function isGuest(userId) {
-      return userId == 'guest_architecture_user';
+      return userId is string && userId.startsWith('guest_');
     }
 
     function isOwner(userId) {
@@ -85,11 +85,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser(incoming());
-      allow update: if isOwner(userId) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']) ||
-        incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt'])
-      );
+      allow create, update: if isOwner(userId);
     }
 
     match /tasks/{taskId} {

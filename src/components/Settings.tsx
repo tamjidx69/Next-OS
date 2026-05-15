@@ -8,11 +8,11 @@ import { useFirebase } from '../contexts/FirebaseContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface SettingsProps {
-  onShowPricing: () => void;
+  onShowAuth: () => void;
 }
 
-export default function Settings({ onShowPricing }: SettingsProps) {
-  const { user, login, logout, updateUserProfile, isPro } = useFirebase();
+export default function Settings({ onShowAuth }: SettingsProps) {
+  const { user, logout, updateUserProfile } = useFirebase();
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [securityLevel, setSecurityLevel] = useState('High');
@@ -44,10 +44,6 @@ export default function Settings({ onShowPricing }: SettingsProps) {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleUpgrade = async () => {
-    onShowPricing();
   };
 
   const handleItemClick = (label: string) => {
@@ -94,17 +90,6 @@ export default function Settings({ onShowPricing }: SettingsProps) {
       items: [
         { icon: Bell, label: 'Notifications', value: notifications ? 'Enabled' : 'DND Mode', color: 'text-amber-500' },
         { icon: Shield, label: 'Privacy & Security', value: `${securityLevel} Protection`, color: 'text-rose-500' },
-      ]
-    },
-    {
-      title: 'Billing & Account',
-      items: [
-        { 
-          icon: CreditCard, 
-          label: 'Subscription Status', 
-          value: isPro ? 'Lifetime Pro Active' : 'Free Tier', 
-          color: isPro ? 'text-amber-400' : 'text-slate-400' 
-        },
       ]
     }
   ];
@@ -227,33 +212,6 @@ export default function Settings({ onShowPricing }: SettingsProps) {
 
         <div className="space-y-6">
           <h2 className="text-xs font-black uppercase tracking-[0.4em] text-slate-600 px-4">Workspace Management</h2>
-          {!isPro && (
-            <div className="px-4 mb-6">
-              <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-8 rounded-[2rem] shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                  <Star size={120} strokeWidth={1} />
-                </div>
-                <div className="relative z-10 space-y-4">
-                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white">
-                    <Zap size={10} fill="currentColor" />
-                    Limited Offer
-                  </div>
-                  <h3 className="text-3xl font-black text-white tracking-tighter">NextOS Pro Lifetime</h3>
-                  <p className="text-indigo-100 text-sm font-medium max-w-xs leading-relaxed">
-                    Unlock neural-sync, unlimited cloud storage, and priority Gemini processing units. One-time payment.
-                  </p>
-                  <div className="pt-4">
-                    <button 
-                      onClick={handleUpgrade}
-                      className="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
-                    >
-                      View Pricing Models
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="mac-card divide-y divide-slate-200 dark:divide-white/5">
             <button 
               onClick={() => triggerToast('Storage Optimized: 42MB Recovered')}
@@ -308,7 +266,7 @@ export default function Settings({ onShowPricing }: SettingsProps) {
             </button>
           ) : (
             <button 
-              onClick={login}
+              onClick={onShowAuth}
               className="w-full mac-card p-7 flex items-center justify-between hover:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 group transition-all"
             >
               <div className="flex items-center gap-6">

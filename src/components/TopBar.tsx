@@ -3,9 +3,13 @@ import { Wifi, Battery, Search, Command, Zap, User, Sun, Moon, LogIn } from 'luc
 import { useFirebase } from '../contexts/FirebaseContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-export default function TopBar() {
+interface TopBarProps {
+  onShowAuth: () => void;
+}
+
+export default function TopBar({ onShowAuth }: TopBarProps) {
   const [time, setTime] = useState(new Date());
-  const { user, login, logout } = useFirebase();
+  const { user, logout } = useFirebase();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function TopBar() {
             </button>
           ) : (
             <button 
-              onClick={login} 
+              onClick={onShowAuth} 
               className="flex items-center gap-2 text-indigo-600 hover:text-indigo-500 transition-colors group font-black"
             >
               <LogIn size={14} />

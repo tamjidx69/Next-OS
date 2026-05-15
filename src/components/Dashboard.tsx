@@ -9,9 +9,10 @@ import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 interface DashboardProps {
   onEnterFocusMode?: () => void;
+  onShowAuth?: () => void;
 }
 
-export default function Dashboard({ onEnterFocusMode }: DashboardProps) {
+export default function Dashboard({ onEnterFocusMode, onShowAuth }: DashboardProps) {
   const { user, isGuest, guestId } = useFirebase();
   const [time, setTime] = useState(new Date());
   const [greeting, setGreeting] = useState('');
@@ -99,6 +100,30 @@ export default function Dashboard({ onEnterFocusMode }: DashboardProps) {
           </span>
         </div>
       </header>
+      
+      {isGuest && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mac-card p-8 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 border-indigo-500/20 flex flex-col md:flex-row items-center justify-between gap-6 group"
+        >
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-white dark:bg-[#0F0F10] rounded-3xl flex items-center justify-center shadow-xl text-indigo-500 border border-indigo-500/20">
+              <Zap size={28} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-visible tracking-tight">Guest Mode Active</h3>
+              <p className="text-slate-500 font-bold text-sm">Your neural data is stored locally but not synced to the cloud. Unlock permanent sync to secure your progress.</p>
+            </div>
+          </div>
+          <button 
+            onClick={onShowAuth}
+            className="w-full md:w-fit bg-indigo-500 text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            Unlock Global Sync
+          </button>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <motion.div 

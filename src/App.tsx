@@ -15,47 +15,22 @@ import NotesView from './components/Notes';
 import HabitsView from './components/Habits';
 import GoalsView from './components/Goals';
 import SettingsView from './components/Settings';
-import PricingView from './components/Pricing';
 import AIAssistant from './components/AIAssistant';
 import Spotlight from './components/Spotlight';
 import FocusTimer from './components/FocusTimer';
+import AuthModal from './components/AuthModal';
+import { Zap, Check } from 'lucide-react';
 import { ViewType } from './types';
-import { LogIn, Zap, Cpu, Check } from 'lucide-react';
-import { db } from './lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
 
 function ZenLayout() {
-  const { user, login, loading } = useFirebase();
+  const { user, loading } = useFirebase();
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const paymentStatus = params.get('payment');
-    const incomingUserId = params.get('userId');
-
-    if (paymentStatus === 'success') {
-      const uid = user?.uid || incomingUserId;
-      if (uid) {
-        const updateProStatus = async () => {
-          try {
-            const userRef = doc(db, 'users', uid);
-            await setDoc(userRef, { isPro: true }, { merge: true });
-            setShowToast('Neural Workspace Upgraded to Pro');
-            setTimeout(() => setShowToast(null), 5000);
-            window.history.replaceState({}, document.title, window.location.pathname);
-          } catch (err) {
-            console.error('Failed to update Pro status:', err);
-          }
-        };
-        updateProStatus();
-      }
-    } else if (paymentStatus === 'fail' || paymentStatus === 'cancel') {
-      setShowToast(paymentStatus === 'cancel' ? 'Upgrade Canceled' : 'Subscription Transfer Failed');
-      setTimeout(() => setShowToast(null), 5000);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    // Neural focus session tracking or other initialization could go here
   }, [user]);
 
   if (loading) {
@@ -75,13 +50,12 @@ function ZenLayout() {
 
   const renderView = () => {
     switch (activeView) {
-      case 'dashboard': return <Dashboard onEnterFocusMode={() => setIsFocusMode(true)} />;
+      case 'dashboard': return <Dashboard onEnterFocusMode={() => setIsFocusMode(true)} onShowAuth={() => setIsAuthOpen(true)} />;
       case 'tasks': return <TasksView />;
       case 'notes': return <NotesView />;
       case 'habits': return <HabitsView />;
       case 'goals': return <GoalsView />;
-      case 'settings': return <SettingsView onShowPricing={() => setActiveView('pricing')} />;
-      case 'pricing': return <PricingView />;
+      case 'settings': return <SettingsView onShowAuth={() => setIsAuthOpen(true)} />;
       case 'ai': return <AIAssistant />;
       default: return <Dashboard />;
     }
@@ -89,7 +63,9 @@ function ZenLayout() {
 
   return (
     <div className="h-screen w-screen bg-mesh overflow-hidden relative transition-colors duration-500">
-      <TopBar />
+      <TopBar onShowAuth={() => setIsAuthOpen(true)} />
+
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
       {/* Global Pro Toast */}
       <AnimatePresence>
