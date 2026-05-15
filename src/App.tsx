@@ -32,21 +32,27 @@ function ZenLayout() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success' && user) {
-      const updateProStatus = async () => {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          await setDoc(userRef, { isPro: true }, { merge: true });
-          setShowToast('Neural Workspace Upgraded to Pro');
-          setTimeout(() => setShowToast(null), 5000);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (err) {
-          console.error('Failed to update Pro status:', err);
-        }
-      };
-      updateProStatus();
-    } else if (params.get('payment') === 'fail') {
-      setShowToast('Subscription Transfer Failed');
+    const paymentStatus = params.get('payment');
+    const incomingUserId = params.get('userId');
+
+    if (paymentStatus === 'success') {
+      const uid = user?.uid || incomingUserId;
+      if (uid) {
+        const updateProStatus = async () => {
+          try {
+            const userRef = doc(db, 'users', uid);
+            await setDoc(userRef, { isPro: true }, { merge: true });
+            setShowToast('Neural Workspace Upgraded to Pro');
+            setTimeout(() => setShowToast(null), 5000);
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err) {
+            console.error('Failed to update Pro status:', err);
+          }
+        };
+        updateProStatus();
+      }
+    } else if (paymentStatus === 'fail' || paymentStatus === 'cancel') {
+      setShowToast(paymentStatus === 'cancel' ? 'Upgrade Canceled' : 'Subscription Transfer Failed');
       setTimeout(() => setShowToast(null), 5000);
       window.history.replaceState({}, document.title, window.location.pathname);
     }

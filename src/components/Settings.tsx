@@ -12,7 +12,7 @@ interface SettingsProps {
 }
 
 export default function Settings({ onShowPricing }: SettingsProps) {
-  const { user, logout, updateUserProfile, isPro } = useFirebase();
+  const { user, login, logout, updateUserProfile, isPro } = useFirebase();
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [securityLevel, setSecurityLevel] = useState('High');
@@ -290,21 +290,39 @@ export default function Settings({ onShowPricing }: SettingsProps) {
 
         <div className="space-y-6">
           <h2 className="text-xs font-black uppercase tracking-[0.4em] text-slate-600 px-4">Identity</h2>
-          <button 
-            onClick={logout}
-            className="w-full mac-card p-7 flex items-center justify-between hover:bg-rose-500/10 border-slate-200 dark:border-white/5 group transition-all"
-          >
-            <div className="flex items-center gap-6">
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0F0F10] border border-slate-200 dark:border-white/5 shadow-2xl text-rose-500">
-                <LogOut size={22} />
+          {user ? (
+            <button 
+              onClick={logout}
+              className="w-full mac-card p-7 flex items-center justify-between hover:bg-rose-500/10 border-slate-200 dark:border-white/5 group transition-all"
+            >
+              <div className="flex items-center gap-6">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0F0F10] border border-slate-200 dark:border-white/5 shadow-2xl text-rose-500">
+                  <LogOut size={22} />
+                </div>
+                <div className="text-left">
+                  <p className="text-rose-500 font-black text-sm tracking-tight">Sign Out from NextOS</p>
+                  <p className="text-rose-900/50 text-[10px] font-black tracking-widest mt-1">SECURED SESSION: {user.email}</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-rose-500 font-black text-sm tracking-tight">Sign Out from NextOS</p>
-                <p className="text-rose-900/50 text-[10px] font-black tracking-widest mt-1">SECURED SESSION: {user?.email}</p>
+              <ChevronRight size={20} className="text-rose-900/40 group-hover:text-rose-500" />
+            </button>
+          ) : (
+            <button 
+              onClick={login}
+              className="w-full mac-card p-7 flex items-center justify-between hover:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 group transition-all"
+            >
+              <div className="flex items-center gap-6">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0F0F10] border border-slate-200 dark:border-white/5 shadow-2xl text-indigo-500">
+                  <Globe size={22} />
+                </div>
+                <div className="text-left">
+                  <p className="text-indigo-500 font-black text-sm tracking-tight">Sync Workspace Account</p>
+                  <p className="text-indigo-900/50 text-[10px] font-black tracking-widest mt-1">GUEST SESSION: Persist your neuro-patterns</p>
+                </div>
               </div>
-            </div>
-            <ChevronRight size={20} className="text-rose-900/40 group-hover:text-rose-500" />
-          </button>
+              <ChevronRight size={20} className="text-indigo-900/40 group-hover:text-indigo-500" />
+            </button>
+          )}
         </div>
       </div>
       

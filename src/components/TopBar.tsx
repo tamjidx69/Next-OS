@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Battery, Search, Command, Zap, User, Sun, Moon } from 'lucide-react';
+import { Wifi, Battery, Search, Command, Zap, User, Sun, Moon, LogIn } from 'lucide-react';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { useTheme } from '../contexts/ThemeContext';
 

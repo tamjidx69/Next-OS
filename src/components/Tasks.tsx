@@ -18,18 +18,19 @@ import {
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 export default function Tasks() {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
     const q = query(
       collection(db, 'tasks'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       orderBy('createdAt', 'desc')
     );
 
@@ -40,18 +41,19 @@ export default function Tasks() {
       });
       setTasks(taskData);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'tasks');
+      if (!isGuest) handleFirestoreError(error, OperationType.LIST, 'tasks');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskText.trim() || !user) return;
+    const uid = user?.uid || guestId;
+    if (!newTaskText.trim() || (!user && !isGuest)) return;
     
     const newTask = {
-      userId: user.uid,
+      userId: uid,
       text: newTaskText,
       completed: false,
       priority: 'medium',
@@ -62,7 +64,7 @@ export default function Tasks() {
       await addDoc(collection(db, 'tasks'), newTask);
       setNewTaskText('');
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'tasks');
+      if (!isGuest) handleFirestoreError(err, OperationType.CREATE, 'tasks');
     }
   };
 

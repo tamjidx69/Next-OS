@@ -18,17 +18,18 @@ import {
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 export default function Notes() {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
     const q = query(
       collection(db, 'notes'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       orderBy('updatedAt', 'desc')
     );
 
@@ -42,16 +43,17 @@ export default function Notes() {
         setSelectedNoteId(noteData[0].id);
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'notes');
+      if (!isGuest) handleFirestoreError(error, OperationType.LIST, 'notes');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   const addNote = async () => {
-    if (!user) return;
+    const uid = user?.uid || guestId;
+    if (!uid) return;
     const newNote = {
-      userId: user.uid,
+      userId: uid,
       title: 'Untitled Note',
       content: '',
       createdAt: Date.now(),
@@ -61,7 +63,7 @@ export default function Notes() {
       const docRef = await addDoc(collection(db, 'notes'), newNote);
       setSelectedNoteId(docRef.id);
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'notes');
+      if (!isGuest) handleFirestoreError(err, OperationType.CREATE, 'notes');
     }
   };
 

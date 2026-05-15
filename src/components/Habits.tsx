@@ -18,16 +18,17 @@ import {
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 export default function Habits() {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabitTitle, setNewHabitTitle] = useState('');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
     const q = query(
       collection(db, 'habits'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       orderBy('createdAt', 'desc')
     );
 
@@ -38,17 +39,18 @@ export default function Habits() {
       });
       setHabits(habitData);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'habits');
+      if (!isGuest) handleFirestoreError(error, OperationType.LIST, 'habits');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   const addHabit = async () => {
-    if (!newHabitTitle.trim() || !user) return;
+    const uid = user?.uid || guestId;
+    if (!newHabitTitle.trim() || !uid) return;
     
     const newHabit = {
-      userId: user.uid,
+      userId: uid,
       title: newHabitTitle,
       streak: 0,
       lastCompleted: null,
@@ -59,7 +61,7 @@ export default function Habits() {
       await addDoc(collection(db, 'habits'), newHabit);
       setNewHabitTitle('');
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'habits');
+      if (!isGuest) handleFirestoreError(err, OperationType.CREATE, 'habits');
     }
   };
 

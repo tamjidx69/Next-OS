@@ -18,17 +18,18 @@ import {
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 export default function Goals() {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalTarget, setNewGoalTarget] = useState(100);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
     const q = query(
       collection(db, 'goals'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       orderBy('createdAt', 'desc')
     );
 
@@ -39,17 +40,18 @@ export default function Goals() {
       });
       setGoals(goalData);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'goals');
+      if (!isGuest) handleFirestoreError(error, OperationType.LIST, 'goals');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   const addGoal = async () => {
-    if (!newGoalTitle.trim() || !user) return;
+    const uid = user?.uid || guestId;
+    if (!newGoalTitle.trim() || !uid) return;
     
     const newGoal = {
-      userId: user.uid,
+      userId: uid,
       title: newGoalTitle,
       target: newGoalTarget,
       current: 0,
@@ -61,7 +63,7 @@ export default function Goals() {
       setNewGoalTitle('');
       setNewGoalTarget(100);
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'goals');
+      if (!isGuest) handleFirestoreError(err, OperationType.CREATE, 'goals');
     }
   };
 

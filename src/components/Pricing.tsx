@@ -73,7 +73,7 @@ function PricingCard({ name, price, description, features, isPopular, buttonText
 }
 
 export default function Pricing() {
-  const { user, isPro } = useFirebase();
+  const { user, isPro, isGuest, guestId } = useFirebase();
   const [loadingPlan, setLoadingPlan] = React.useState<string | null>(null);
 
   const handleUpgrade = async (plan: 'pro' | 'elite') => {
@@ -83,7 +83,7 @@ export default function Pricing() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.uid,
+          userId: user?.uid || (isGuest ? guestId : null),
           userEmail: user?.email,
           plan: plan,
         }),

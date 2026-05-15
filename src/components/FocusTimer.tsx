@@ -12,21 +12,22 @@ interface FocusTimerProps {
 }
 
 export default function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
-  const { user } = useFirebase();
+  const { user, isGuest, guestId } = useFirebase();
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
   const [sessionCount, setSessionCount] = useState(0);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user && !isGuest) return;
+    const uid = user?.uid || guestId;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const q = query(
       collection(db, 'focusSessions'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       where('completedAt', '>=', today.getTime()),
       where('type', '==', 'focus')
     );
@@ -34,11 +35,11 @@ export default function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setSessionCount(snapshot.size);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'focusSessions');
+      if (!isGuest) handleFirestoreError(error, OperationType.LIST, 'focusSessions');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isGuest, guestId]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -56,10 +57,11 @@ export default function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
   }, [isActive, timeLeft]);
 
   const handleSessionComplete = async () => {
-    if (!user) return;
+    const uid = user?.uid || guestId;
+    if (!uid) return;
 
     const session = {
-      userId: user.uid,
+      userId: uid,
       duration: mode === 'focus' ? 25 : 5,
       type: mode,
       completedAt: Date.now()
@@ -73,7 +75,7 @@ export default function FocusTimer({ isOpen, onClose }: FocusTimerProps) {
         audio.play().catch(() => {});
       }
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'focusSessions');
+      if (!isGuest) handleFirestoreError(err, OperationType.CREATE, 'focusSessions');
     }
   };
 
